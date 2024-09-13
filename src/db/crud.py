@@ -1,5 +1,5 @@
 
-from sqlalchemy import select, update, or_, and_
+from sqlalchemy import select, update, or_, and_, func
 from sqlalchemy.orm import Session
 from uuid import UUID
 from src.db.models import Tender, User, TenderHistory, Organization, TenderServiceType, OrganizationResponsible, \
@@ -391,14 +391,18 @@ def submit_bid_decision(db: Session, bid_id: UUID, decision: BidDecisionStatus, 
         db.commit()
         return bid
 
-    responsible_count = db.scalars(
-        select(OrganizationResponsible).where(OrganizationResponsible.organization_id == bid.tender.organization_id)
-    ).count()
+    responsible_count = db.scalar(
+        select(func.count()).select_from(OrganizationResponsible).where(
+            OrganizationResponsible.organization_id == bid.tender.organization_id
+        )
+    )
 
     quorum = min(3, responsible_count)
-    approved_count = db.scalars(
-        select(BidDecision).where(BidDecision.bid_id == bid.id, BidDecision.decision == BidDecisionStatus.APPROVED)
-    ).count()
+    approved_count = db.scalar(
+        select(func.count()).select_from(BidDecision).where(
+            BidDecision.bid_id == bid.id, BidDecision.decision == BidDecisionStatus.APPROVED
+        )
+    )
 
     if approved_count >= quorum:
         bid.tender.status = TenderStatus.CLOSED
