@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 import fastapi
 from uuid import UUID
 
-from src.models import TenderCreate, TenderOut, TenderUpdate, TenderStatus, PaginationParameters, ErrorResponse, \
+from src.models import TenderCreate, TenderOut, TenderUpdate, TenderStatus, PaginationParameters, \
     TenderServiceType
 from src.db.crud import (
     get_tenders,

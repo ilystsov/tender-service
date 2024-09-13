@@ -60,11 +60,92 @@ class PaginationParameters(BaseModel):
     limit: int = Field(5, ge=0, le=50)
     offset: int = Field(0, ge=0)
 
-class ErrorResponse(BaseModel):
-    reason: str = Field(..., min_length=5)
 
 class TenderStatusResponse(BaseModel):
     status: TenderStatus
 
     class Config:
         orm_mode = True
+
+
+
+class BidStatus(str, Enum):
+    CREATED = "Created"
+    PUBLISHED = "Published"
+    CANCELED = "Canceled"
+
+class AuthorType(str, Enum):
+    USER = "User"
+    ORGANIZATION = "Organization"
+
+class BidCreate(BaseModel):
+    name: str = Field(..., max_length=100)
+    description: str = Field(..., max_length=500)
+    tenderId: str = Field(..., max_length=100)
+    authorType: AuthorType
+    authorId: str = Field(..., max_length=100)
+
+class BidUpdate(BaseModel):
+    name: str | None = Field(None, max_length=100)
+    description: str | None = Field(None, max_length=500)
+
+class BidOut(BaseModel):
+    id: str = Field(..., max_length=100)
+    name: str = Field(..., max_length=100)
+    description: str = Field(..., max_length=500)
+    status: BidStatus
+    tenderId: str = Field(..., max_length=100)
+    authorType: AuthorType
+    authorId: str = Field(..., max_length=100)
+    version: int = Field(..., ge=1)
+    createdAt: str
+
+    class Config:
+        orm_mode = True
+
+    @classmethod
+    def from_orm(cls, obj):
+        return cls(
+            id=str(obj.id),
+            name=obj.name,
+            description=obj.description,
+            status=obj.status.value,
+            tenderId=str(obj.tender_id),
+            authorType=obj.author_type.value,
+            authorId=str(obj.author_id),
+            version=obj.version,
+            createdAt=cls.format_rfc3339(obj.created_at)
+        )
+
+    @staticmethod
+    def format_rfc3339(dt):
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+
+
+class BidFeedbackOut(BaseModel):
+    id: str = Field(..., max_length=100)
+    bidId: str = Field(..., max_length=100)
+    userId: str = Field(..., max_length=100)
+    feedback: str = Field(..., max_length=1000)
+    createdAt: str
+
+    class Config:
+        orm_mode = True
+
+    @classmethod
+    def from_orm(cls, obj):
+        return cls(
+            id=str(obj.id),
+            bidId=str(obj.bid_id),
+            userId=str(obj.user_id),
+            feedback=obj.feedback,
+            createdAt=cls.format_rfc3339(obj.created_at)
+        )
+
+    @staticmethod
+    def format_rfc3339(dt):
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")

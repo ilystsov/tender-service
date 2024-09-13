@@ -12,3 +12,9 @@ class TenderVersionNotFound(Exception):
 
 class OrganizationNotFound(Exception):
     pass
+
+class BidNotFound(Exception):
+    pass
+
+class BidVersionNotFound(Exception):
+    pass

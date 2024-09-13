@@ -95,15 +95,28 @@ class Tender(BaseModel):
     bids: Mapped[list["Bid"]] = relationship("Bid", back_populates="tender", cascade="all, delete-orphan")
     history: Mapped[list["TenderHistory"]] = relationship("TenderHistory", back_populates="tender", cascade="all, delete-orphan")
 
+
 class BidStatus(enum.Enum):
     CREATED = "Created"
     PUBLISHED = "Published"
     CANCELED = "Canceled"
 
-
 class AuthorType(enum.Enum):
     USER = "User"
     ORGANIZATION = "Organization"
+
+class BidHistory(BaseModel):
+    __tablename__ = "bid_history"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    bid_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("bid.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[BidStatus] = mapped_column(Enum(BidStatus), nullable=False)
+    version: Mapped[int] = mapped_column(nullable=False)
+    created_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    bid: Mapped["Bid"] = relationship("Bid", back_populates="history")
 
 
 class Bid(BaseModel):
@@ -123,3 +136,38 @@ class Bid(BaseModel):
     author_type: Mapped[AuthorType] = mapped_column(Enum(AuthorType), nullable=False)
     author_id: Mapped[uuid.UUID] = mapped_column(nullable=False)
 
+    history: Mapped[list["BidHistory"]] = relationship("BidHistory", back_populates="bid", cascade="all, delete-orphan")
+
+    decisions: Mapped[list["BidDecision"]] = relationship("BidDecision", back_populates="bid", cascade="all, delete-orphan")
+    feedbacks: Mapped[list["BidFeedback"]] = relationship("BidFeedback", back_populates="bid", cascade="all, delete-orphan")
+
+
+class BidDecisionStatus(enum.Enum):
+    APPROVED = "Approved"
+    REJECTED = "Rejected"
+
+
+class BidDecision(BaseModel):
+    __tablename__ = "bid_decision"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    bid_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("bid.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"), nullable=False)
+    decision: Mapped[BidDecisionStatus] = mapped_column(Enum(BidDecisionStatus), nullable=False)
+    created_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    bid: Mapped["Bid"] = relationship("Bid", back_populates="decisions")
+    user: Mapped["User"] = relationship("User")
+
+
+class BidFeedback(BaseModel):
+    __tablename__ = "bid_feedback"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    bid_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("bid.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"), nullable=False)
+    feedback: Mapped[str] = mapped_column(String(1000), nullable=False)
+    created_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    bid: Mapped["Bid"] = relationship("Bid", back_populates="feedbacks")
+    user: Mapped["User"] = relationship("User")
