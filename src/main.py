@@ -3,9 +3,17 @@ from fastapi.exceptions import RequestValidationError
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse, JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from src.db.database import engine, BaseModel
 from src.routes.tenders import router as tenders_router
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+def startup_event():
+    print("Creating all tables in the database if they do not exist...")
+    BaseModel.metadata.create_all(bind=engine)
 
 
 @app.exception_handler(StarletteHTTPException)

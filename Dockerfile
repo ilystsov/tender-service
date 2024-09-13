@@ -18,7 +18,4 @@ COPY . /app
 
 EXPOSE 8080
 
-
-RUN chmod +x /app/entrypoint.sh
-
-ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
