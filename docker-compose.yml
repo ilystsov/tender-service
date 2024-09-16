@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+    tender-service:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - '8080:8080'
+        env_file:
+            - .env
+        volumes:
+            - ./src:/app/src
+            - .env:/app/env
+        depends_on:
+            - db
+
+    db:
+        image: postgres:13
+        env_file:
+            - .env
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        ports:
+            - '5432:5432'
+
+volumes:
+    pgdata:
