@@ -218,7 +218,7 @@ def get_bid_reviews(
             limit=pagination.limit,
             offset=pagination.offset
         )
-        return feedbacks
+        return [BidFeedbackOut.from_orm(feedback) for feedback in feedbacks]
     except UserNotFound as e:
         handle_exception(e, fastapi.status.HTTP_401_UNAUTHORIZED)
     except PermissionDenied as e:

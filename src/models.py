@@ -126,9 +126,7 @@ class BidOut(BaseModel):
 
 class BidFeedbackOut(BaseModel):
     id: str = Field(..., max_length=100)
-    bidId: str = Field(..., max_length=100)
-    userId: str = Field(..., max_length=100)
-    feedback: str = Field(..., max_length=1000)
+    description: str = Field(..., max_length=1000)
     createdAt: str
 
     class Config:
@@ -138,9 +136,7 @@ class BidFeedbackOut(BaseModel):
     def from_orm(cls, obj):
         return cls(
             id=str(obj.id),
-            bidId=str(obj.bid_id),
-            userId=str(obj.user_id),
-            feedback=obj.feedback,
+            description=obj.feedback,
             createdAt=cls.format_rfc3339(obj.created_at)
         )
 
